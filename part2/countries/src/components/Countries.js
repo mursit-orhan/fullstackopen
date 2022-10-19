@@ -24,12 +24,15 @@ const Country = ({ country }) => {
 	);
 };
 
-const Countries = ({ countries }) => {
+const Countries = ({ countries, handleShow }) => {
 	if (countries.length === 1) {
 		return <Country country={countries[0]} />;
 	}
-	return countries.map(({ name }) => (
-		<div key={name.common}>{name.common}</div>
+	return countries.map((country) => (
+		<div key={country.name.common}>
+			{country.name.common}{' '}
+			<button onClick={() => handleShow(country)}>show</button>
+		</div>
 	));
 };
 
