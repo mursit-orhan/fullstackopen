@@ -9,9 +9,10 @@ const App = () => {
 	const [newName, setNewName] = useState('');
 	const [newNumber, setNewNumber] = useState('');
 	const [filter, setFilter] = useState('');
+	const personURL = 'http://localhost:3001/persons';
 
 	useEffect(() => {
-		axios.get('http://localhost:3001/persons').then((response) => {
+		axios.get(personURL).then((response) => {
 			setPersons(response.data);
 		});
 	}, []);
@@ -34,8 +35,12 @@ const App = () => {
 		event.preventDefault();
 		const person = persons.find(({ name }) => name === newName);
 		if (!person) {
-			const people = persons.concat({ name: newName, number: newNumber });
-			setPersons(people);
+			const newPerson = { name: newName, number: newNumber };
+			axios.post(personURL, newPerson).then((response) => {
+				console.log(response);
+				const people = persons.concat(newPerson);
+				setPersons(people);
+			});
 		} else {
 			const msg = `${newName} is already added to phonebook`;
 			alert(msg);
