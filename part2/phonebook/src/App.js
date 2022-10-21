@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import Filter from './components/Filter';
+import Notification from './components/Notification';
 import PersonForm from './components/PersonForm';
 import Persons from './components/Persons';
 import personService from './services/persons';
@@ -9,6 +10,7 @@ const App = () => {
 	const [newName, setNewName] = useState('');
 	const [newNumber, setNewNumber] = useState('');
 	const [filter, setFilter] = useState('');
+	const [infoMessage, setInfoMessage] = useState(null);
 
 	useEffect(() => {
 		personService.getAll().then((personNotes) => {
@@ -40,6 +42,7 @@ const App = () => {
 				console.log(response);
 				const people = persons.concat(newPerson);
 				setPersons(people);
+				setInfoMessage(`Added ${newPerson.name}`);
 			});
 		} else {
 			if (
@@ -51,10 +54,14 @@ const App = () => {
 				personService.update(newPerson.id, newPerson);
 				person.number = newNumber;
 				setPersons(people);
+				setInfoMessage(`Number updated for ${newPerson.name}`);
 			}
 		}
 		setNewName('');
 		setNewNumber('');
+		setTimeout(() => {
+			setInfoMessage(null);
+		}, 5000);
 	};
 	const handleDelete = (id) => {
 		const person = persons.find((person) => person.id === id);
@@ -74,6 +81,7 @@ const App = () => {
 	return (
 		<div>
 			<h2>Phonebook</h2>
+			<Notification message={infoMessage} />
 			<Filter value={filter} onChange={(event) => handleFilterChange(event)} />
 			<PersonForm
 				name={newName}
