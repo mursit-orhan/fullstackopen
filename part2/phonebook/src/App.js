@@ -10,7 +10,8 @@ const App = () => {
 	const [newName, setNewName] = useState('');
 	const [newNumber, setNewNumber] = useState('');
 	const [filter, setFilter] = useState('');
-	const [infoMessage, setInfoMessage] = useState(null);
+	const [message, setMessage] = useState(null);
+	const [msgType, setMsgType] = useState(null);
 
 	useEffect(() => {
 		personService.getAll().then((personNotes) => {
@@ -39,10 +40,10 @@ const App = () => {
 		if (!person) {
 			const newPerson = { name: newName, number: newNumber };
 			personService.create(newPerson).then((response) => {
-				console.log(response);
 				const people = persons.concat(newPerson);
 				setPersons(people);
-				setInfoMessage(`Added ${newPerson.name}`);
+				setMessage(`Added ${newPerson.name}`);
+				setMsgType('info');
 			});
 		} else {
 			if (
@@ -51,16 +52,27 @@ const App = () => {
 				)
 			) {
 				const newPerson = { ...person, number: newNumber };
-				personService.update(newPerson.id, newPerson);
-				person.number = newNumber;
-				setPersons(people);
-				setInfoMessage(`Number updated for ${newPerson.name}`);
+
+				personService
+					.update(newPerson.id, newPerson)
+					.then(() => {
+						person.number = newNumber;
+						setPersons(people);
+						setMessage(`Number updated for ${newPerson.name}`);
+						setMsgType('info');
+					})
+					.catch(() => {
+						setMessage(
+							`Information of ${newName} has already been removed from server`
+						);
+						setMsgType('error');
+					});
 			}
 		}
 		setNewName('');
 		setNewNumber('');
 		setTimeout(() => {
-			setInfoMessage(null);
+			setMessage(null);
 		}, 5000);
 	};
 	const handleDelete = (id) => {
@@ -81,7 +93,7 @@ const App = () => {
 	return (
 		<div>
 			<h2>Phonebook</h2>
-			<Notification message={infoMessage} />
+			<Notification message={message} messageType={msgType} />
 			<Filter value={filter} onChange={(event) => handleFilterChange(event)} />
 			<PersonForm
 				name={newName}
