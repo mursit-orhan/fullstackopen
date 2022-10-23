@@ -1,5 +1,6 @@
 const express = require('express');
 const app = express();
+app.use(express.json());
 
 let persons = [
 	{
@@ -33,6 +34,14 @@ app.get('/info', (request, response) => {
 app.get('/api/persons', (request, response) => {
 	response.json(persons);
 });
+app.post('/api/persons', (request, response) => {
+	const person = request.body;
+	const id = Math.floor(Math.random() * 100000000);
+	person.id = id;
+	console.log(person);
+	persons = persons.concat(person);
+	response.json(person);
+});
 app.get('/api/persons/:id', (request, response) => {
 	const id = Number(request.params.id);
 	const person = persons.find((person) => person.id === id);
@@ -51,6 +60,7 @@ app.delete('/api/persons/:id', (request, response) => {
 });
 
 const PORT = 3001;
+
 app.listen(PORT, () => {
 	console.log(`Server running on port ${PORT}`);
 });
