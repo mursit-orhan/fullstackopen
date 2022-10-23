@@ -35,12 +35,24 @@ app.get('/api/persons', (request, response) => {
 	response.json(persons);
 });
 app.post('/api/persons', (request, response) => {
-	const person = request.body;
+	const newPerson = request.body;
 	const id = Math.floor(Math.random() * 100000000);
-	person.id = id;
-	console.log(person);
-	persons = persons.concat(person);
-	response.json(person);
+	newPerson.id = id;
+	const { name, number } = newPerson;
+	const error = {};
+	if (!name || !number) {
+		error.error = 'either name or number is absent!';
+	}
+	const person = persons.find((person) => person.name === name);
+	if (person) {
+		error.error = 'name must be unique';
+	}
+	if (error.error) {
+		response.status(400).json(error);
+	} else {
+		persons = persons.concat(newPerson);
+		response.json(person);
+	}
 });
 app.get('/api/persons/:id', (request, response) => {
 	const id = Number(request.params.id);
