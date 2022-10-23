@@ -39,8 +39,15 @@ app.get('/api/persons/:id', (request, response) => {
 	if (person) {
 		response.json(person);
 	} else {
+		response.statusMessage = 'The record not found!';
 		response.status(404).end();
 	}
+});
+app.delete('/api/persons/:id', (request, response) => {
+	const id = Number(request.params.id);
+	persons = persons.filter((persons) => persons.id !== id);
+
+	response.status(204).end();
 });
 
 const PORT = 3001;
