@@ -16,10 +16,12 @@ app.use(express.json());
 app.use(express.static('build'));
 
 app.get('/info', (request, response) => {
-	const content = `<div>Phonebook has info for ${
-		persons.length
-	} people</div><div>${new Date().toUTCString()}</div>`;
-	response.send(content);
+	Person.find({}).then((persons) => {
+		const content = `<div>Phonebook has info for ${
+			persons.length
+		} people</div><div>${new Date().toUTCString()}</div>`;
+		response.send(content);
+	});
 });
 app.get('/api/persons', (request, response) => {
 	Person.find({}).then((persons) => {
@@ -67,7 +69,8 @@ app.put('/api/persons/:id', (request, response) => {
 
 	const { id, number } = body;
 	const person = { number };
-
+	console.log(body);
+	console.log(person);
 	Person.findByIdAndUpdate(id, person)
 		.then((result) => response.status(204).end())
 		.catch((error) => next(error));
