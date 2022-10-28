@@ -1,4 +1,3 @@
-require('dotenv').config();
 const express = require('express');
 const morgan = require('morgan');
 const cors = require('cors');
@@ -16,29 +15,6 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('build'));
 
-let persons1 = [
-	{
-		id: 1,
-		name: 'Arto Hellas',
-		number: '040-123456',
-	},
-	{
-		id: 2,
-		name: 'Ada Lovelace',
-		number: '39-44-5323523',
-	},
-	{
-		id: 3,
-		name: 'Dan Abramov',
-		number: '12-43-234345',
-	},
-	{
-		id: 4,
-		name: 'Mary Poppendieck',
-		number: '39-23-6423122',
-	},
-];
-
 app.get('/info', (request, response) => {
 	const content = `<div>Phonebook has info for ${
 		persons.length
@@ -47,11 +23,7 @@ app.get('/info', (request, response) => {
 });
 app.get('/api/persons', (request, response) => {
 	const persons = [];
-	Person.find({}).then((result) => {
-		result.forEach((person) => {
-			persons.push(person);
-		});
-
+	Person.find({}).then((persons) => {
 		response.json(persons);
 	});
 });
@@ -61,32 +33,23 @@ app.post('/api/persons', (request, response) => {
 	const { name, number } = body;
 	const error = {};
 	if (!name || !number) {
-		error.error = 'either name or number is absent!';
+		error.error = 'either name or number is missing!';
 	}
-	const person = persons.find((person) => person.name === name);
-	if (person) {
-		error.error = 'name must be unique';
-	}
-	if (error.error) {
-		response.status(400).json(error);
-	} else {
-		newPerson.save().then((savedPerson) => {
-			response.json(savedPerson);
-		});
-	}
+
+	const person = new Person({
+		name,
+		number,
+	});
+
+	person.save().then((savedPerson) => {
+		response.json(savedPerson);
+	});
 });
 app.get('/api/persons/:id', (request, response) => {
 	const id = Number(request.params.id);
 	Person.findById(id).then((person) => {
 		response.json(person);
 	});
-
-	// if (person) {
-	// 	response.json(person);
-	// } else {
-	// 	response.statusMessage = 'The record not found!';
-	// 	response.status(404).end();
-	// }
 });
 app.delete('/api/persons/:id', (request, response) => {
 	const id = Number(request.params.id);
