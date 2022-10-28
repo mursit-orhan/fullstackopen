@@ -1,6 +1,8 @@
+require('dotenv').config();
 const express = require('express');
 const morgan = require('morgan');
 const cors = require('cors');
+const Person = require('./models/person');
 const app = express();
 
 morgan.token('post', function (req, res) {
@@ -14,7 +16,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('build'));
 
-let persons = [
+let persons1 = [
 	{
 		id: 1,
 		name: 'Arto Hellas',
@@ -44,13 +46,19 @@ app.get('/info', (request, response) => {
 	response.send(content);
 });
 app.get('/api/persons', (request, response) => {
-	response.json(persons);
+	const persons = [];
+	Person.find({}).then((result) => {
+		result.forEach((person) => {
+			persons.push(person);
+		});
+
+		response.json(persons);
+	});
 });
 app.post('/api/persons', (request, response) => {
-	const newPerson = request.body;
-	const id = Math.floor(Math.random() * 100000000);
-	newPerson.id = id;
-	const { name, number } = newPerson;
+	const body = request.body;
+
+	const { name, number } = body;
 	const error = {};
 	if (!name || !number) {
 		error.error = 'either name or number is absent!';
@@ -62,19 +70,23 @@ app.post('/api/persons', (request, response) => {
 	if (error.error) {
 		response.status(400).json(error);
 	} else {
-		persons = persons.concat(newPerson);
-		response.json(person);
+		newPerson.save().then((savedPerson) => {
+			response.json(savedPerson);
+		});
 	}
 });
 app.get('/api/persons/:id', (request, response) => {
 	const id = Number(request.params.id);
-	const person = persons.find((person) => person.id === id);
-	if (person) {
+	Person.findById(id).then((person) => {
 		response.json(person);
-	} else {
-		response.statusMessage = 'The record not found!';
-		response.status(404).end();
-	}
+	});
+
+	// if (person) {
+	// 	response.json(person);
+	// } else {
+	// 	response.statusMessage = 'The record not found!';
+	// 	response.status(404).end();
+	// }
 });
 app.delete('/api/persons/:id', (request, response) => {
 	const id = Number(request.params.id);
