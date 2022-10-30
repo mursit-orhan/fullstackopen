@@ -67,7 +67,7 @@ app.delete('/api/persons/:id', (request, response) => {
 		.then((result) => response.status(204).end())
 		.catch((error) => next(error));
 });
-app.put('/api/persons/:id', (request, response) => {
+app.put('/api/persons/:id', (request, response, next) => {
 	const body = request.body;
 
 	const { id, number } = body;
