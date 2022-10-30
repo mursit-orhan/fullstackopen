@@ -10,8 +10,7 @@ const App = () => {
 	const [newName, setNewName] = useState('');
 	const [newNumber, setNewNumber] = useState('');
 	const [filter, setFilter] = useState('');
-	const [message, setMessage] = useState(null);
-	const [msgType, setMsgType] = useState(null);
+	const [message, setMessage] = useState({ msg: '', type: '' });
 
 	useEffect(() => {
 		personService.getAll().then((personNotes) => {
@@ -39,12 +38,19 @@ const App = () => {
 		const person = persons.find(({ name }) => name === newName);
 		if (!person) {
 			const newPerson = { name: newName, number: newNumber };
-			personService.create(newPerson).then((response) => {
-				const people = persons.concat(newPerson);
-				setPersons(people);
-				setMessage(`Added ${newPerson.name}`);
-				setMsgType('info');
-			});
+			personService
+				.create(newPerson)
+				.then((response) => {
+					const people = persons.concat(newPerson);
+					setPersons(people);
+					setMessage({ msg: `Added ${newPerson.name}`, type: 'info' });
+				})
+				.catch((error) => {
+					const errorMessage = error?.response?.data?.error;
+					if (errorMessage) {
+						setMessage({ msg: errorMessage, type: 'error' });
+					}
+				});
 		} else {
 			if (
 				window.confirm(
@@ -58,21 +64,23 @@ const App = () => {
 					.then(() => {
 						person.number = newNumber;
 						setPersons(people);
-						setMessage(`Number updated for ${newPerson.name}`);
-						setMsgType('info');
+						setMessage({
+							msg: `Number updated for ${newPerson.name}`,
+							type: 'info',
+						});
 					})
 					.catch(() => {
-						setMessage(
-							`Information of ${newName} has already been removed from server`
-						);
-						setMsgType('error');
+						setMessage({
+							msg: `Information of ${newName} has already been removed from server`,
+							type: 'error',
+						});
 					});
 			}
 		}
 		setNewName('');
 		setNewNumber('');
 		setTimeout(() => {
-			setMessage(null);
+			setMessage({ msg: '', type: '' });
 		}, 5000);
 	};
 	const handleDelete = (id) => {
@@ -93,7 +101,7 @@ const App = () => {
 	return (
 		<div>
 			<h2>Phonebook</h2>
-			<Notification message={message} messageType={msgType} />
+			<Notification message={message.msg} messageType={message.type} />
 			<Filter value={filter} onChange={(event) => handleFilterChange(event)} />
 			<PersonForm
 				name={newName}
