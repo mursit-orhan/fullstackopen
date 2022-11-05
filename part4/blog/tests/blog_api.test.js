@@ -70,6 +70,36 @@ test('a valid blog can be added', async () => {
   expect(titles).toContain('Canonical string reduction')
 })
 
+test('blog with missing likes has a value 0 for its likes property', async () => {
+  const newBlog = {
+    title: 'Type wars',
+    author: 'Robert C. Martin',
+    url: 'http://blog.cleancoder.com/uncle-bob/2016/05/01/TypeWars.html',
+  }
+
+  await api.post('/api/blogs').send(newBlog).expect(201)
+
+  const response = await api.get('/api/blogs')
+
+  const blog = response.body.find((r) => r.title === 'Type wars')
+
+  expect(blog.likes).toBe(0)
+})
+test('blog with missing url get 400 bad request', async () => {
+  const newBlog = {
+    title: 'Canonical string reduction',
+    author: 'Edsger W. Dijkstra',
+  }
+  await api.post('/api/blogs').send(newBlog).expect(400)
+}, 100000)
+
+test('blog with missing title get 400 bad request', async () => {
+  const newBlog = {
+    author: 'Edsger W. Dijkstra',
+  }
+  await api.post('/api/blogs').send(newBlog).expect(400)
+}, 100000)
+
 afterAll(() => {
   mongoose.connection.close()
 })
