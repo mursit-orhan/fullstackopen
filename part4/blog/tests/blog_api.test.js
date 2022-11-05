@@ -36,11 +36,40 @@ test('all notes are returned', async () => {
 
   expect(response.body).toHaveLength(initialBlogs.length)
 })
+
 test('a specific blog is within the returned blogs', async () => {
   const response = await api.get('/api/blogs')
   const titles = response.body.map((r) => r.title)
   expect(titles).toContain('Go To Statement Considered Harmful')
 })
+
+test('verify existence of id property of a blog', async () => {
+  const response = await api.get('/api/blogs')
+  const aBlog = response.body[0]
+  expect(aBlog.id).toBeDefined()
+})
+test('a valid blog can be added', async () => {
+  const newBlog = {
+    title: 'Canonical string reduction',
+    author: 'Edsger W. Dijkstra',
+    url: 'http://www.cs.utexas.edu/~EWD/transcriptions/EWD08xx/EWD808.html',
+    likes: 12,
+  }
+
+  await api
+    .post('/api/blogs')
+    .send(newBlog)
+    .expect(201)
+    .expect('Content-Type', /application\/json/)
+
+  const response = await api.get('/api/blogs')
+
+  const titles = response.body.map((r) => r.title)
+
+  expect(response.body).toHaveLength(initialBlogs.length + 1)
+  expect(titles).toContain('Canonical string reduction')
+})
+
 afterAll(() => {
   mongoose.connection.close()
 })
