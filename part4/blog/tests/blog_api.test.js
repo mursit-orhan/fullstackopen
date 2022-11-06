@@ -98,7 +98,34 @@ test('blog with missing title get 400 bad request', async () => {
     author: 'Edsger W. Dijkstra',
   }
   await api.post('/api/blogs').send(newBlog).expect(400)
-}, 100000)
+})
+
+test('update a blog with title', async () => {
+  let blogs = await (await api.get('/api/blogs')).body
+  const id = blogs[0].id
+  console.log('id', blogs[0])
+  const blog = {
+    title: 'A new title',
+  }
+  await api.put(`/api/blogs/${id}`).send(blog).expect(204)
+
+  const response = await api.get('/api/blogs')
+
+  const titles = response.body.map((r) => r.title)
+
+  expect(titles).toContain('A new title')
+})
+
+test.only('delete a blog', async () => {
+  let blogs = await (await api.get('/api/blogs')).body
+  const id = blogs[0].id
+
+  await api.delete(`/api/blogs/${id}`).expect(204)
+
+  const response = await api.get('/api/blogs')
+
+  expect(response.body).toHaveLength(initialBlogs.length - 1)
+})
 
 afterAll(() => {
   mongoose.connection.close()
