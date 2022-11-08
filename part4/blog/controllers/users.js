@@ -9,6 +9,11 @@ usersRouter.get('/', async (request, response) => {
 
 usersRouter.post('/', async (request, response) => {
   const { username, name, password } = request.body
+  if (username && username.length < 3) {
+    return response
+      .status(400)
+      .json({ error: 'username must be at least 3 characters long' })
+  }
 
   const existingUser = await User.findOne({ username })
   if (existingUser) {
