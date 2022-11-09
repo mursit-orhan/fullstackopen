@@ -116,7 +116,7 @@ test('update a blog with title', async () => {
   expect(titles).toContain('A new title')
 })
 
-test.only('delete a blog', async () => {
+test('delete a blog', async () => {
   let blogs = await (await api.get('/api/blogs')).body
   const id = blogs[0].id
 
