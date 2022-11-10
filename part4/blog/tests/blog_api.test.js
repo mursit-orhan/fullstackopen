@@ -7,6 +7,8 @@ const User = require('../models/user')
 const helper = require('./test_helper')
 
 const api = supertest(app)
+const token =
+  'yJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Im1sdXVra2FpIiwiaWQiOiI2MzZjZmI5MGJjNjJlYzNlOGZiZjBjMDkiLCJpYXQiOjE2NjgwODY2NzJ9.pzUdwjutpxpjBpUlM8wM-_0-pswnSK_kK4XFofve4yU'
 const initialBlogs = [
   {
     title: 'React patterns',
@@ -59,6 +61,7 @@ test.only('a valid blog can be added', async () => {
   await api
     .post('/api/blogs')
     .send(newBlog)
+    .set({ Authorization: 'bearer ' + token })
     .expect(201)
     .expect('Content-Type', /application\/json/)
 
@@ -68,6 +71,16 @@ test.only('a valid blog can be added', async () => {
 
   expect(response.body).toHaveLength(initialBlogs.length + 1)
   expect(titles).toContain('Canonical string reduction')
+})
+test('an authorization error is gotten if token is not provided', async () => {
+  const newBlog = {
+    title: 'Canonical string reduction',
+    author: 'Edsger W. Dijkstra',
+    url: 'http://www.cs.utexas.edu/~EWD/transcriptions/EWD08xx/EWD808.html',
+    likes: 12,
+  }
+
+  await api.post('/api/blogs').send(newBlog).expect(401)
 })
 
 test('blog with missing likes has a value 0 for its likes property', async () => {
@@ -177,6 +190,27 @@ describe('when there is initially one user in db', () => {
 
     const usersAtEnd = await helper.usersInDb()
     expect(usersAtEnd).toEqual(usersAtStart)
+  })
+  test('login and get a token', async () => {
+    const newUser = {
+      username: 'mluukkai',
+      name: 'Matti Luukkainen',
+      password: 'salainen',
+    }
+
+    await api
+      .post('/api/users')
+      .send(newUser)
+      .expect(201)
+      .expect('Content-Type', /application\/json/)
+
+    const result = await api
+      .post('/api/login')
+      .send(newUser)
+      .expect(200)
+      .expect('Content-Type', /application\/json/)
+    console.log(result)
+    expect(result.body.token).toBeDefined()
   })
 })
 
