@@ -9,14 +9,7 @@ blogsRouter.get('/', async (request, response) => {
 })
 
 blogsRouter.post('/', async (request, response) => {
-  const token = request.token
-  console.log(token)
-  const decodedToken = jwt.verify(token, process.env.SECRET)
-  console.log('token', decodedToken)
-  if (!decodedToken.id) {
-    return response.status(401).json({ error: 'token missing or invalid' })
-  }
-  const user = await User.findById(decodedToken.id)
+  const user = request.user
   const { title, url, likes } = request.body
   if (!title || !url) {
     response.status(400).end()
@@ -41,17 +34,19 @@ blogsRouter.put('/:id', async (request, response) => {
 })
 
 blogsRouter.delete('/:id', async (request, response) => {
-  const token = request.token
-  const decodedToken = jwt.verify(token, process.env.SECRET)
-  if (!decodedToken.id) {
-    return response.status(401).json({ error: 'token missing or invalid' })
-  }
-  const blog = await Blog.findById(request.params.id).populate('user')
+  const user = await User.findById(request.user.id).populate('blogs')
 
-  if (blog.user._id.toString() !== decodedToken.id.toString()) {
+  const filteredBlog = user.blogs.filter(
+    (blog) => blog._id.toString() !== request.params.id.toString()
+  )
+
+  //the user do not have ownership of this blog
+  if (user.blogs.length === filteredBlog.length) {
     return response.status(401).json({ error: 'unauthorised operation' })
   }
+  user.blogs = filteredBlog
   await Blog.findByIdAndRemove(request.params.id)
+  user.save()
   response.status(204).end()
 })
 
